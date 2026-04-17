@@ -15,17 +15,17 @@ app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer YOUR_API_KEY",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: message }]
-      })
-    });
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer YOUR_OPENROUTER_KEY",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    model: "mistralai/mistral-7b-instruct",
+    messages: [{ role: "user", content: message }]
+  })
+});
 
     const data = await response.json();
 
