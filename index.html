@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Jarvis AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #020617, #0f172a);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      padding: 15px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .msg {
+      padding: 12px 14px;
+      margin: 8px 0;
+      border-radius: 14px;
+      max-width: 75%;
+      animation: fadeIn 0.25s ease;
+      line-height: 1.4;
+    }
+
+    .user {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      align-self: flex-end;
+    }
+
+    .bot {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      align-self: flex-start;
+    }
+
+    #inputBox {
+      display: flex;
+      padding: 12px;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    input::placeholder {
+      color: #aaa;
+    }
+
+    button {
+      margin-left: 8px;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .send {
+      background: #22c55e;
+      color: white;
+    .mic.active {
+    background: #dc2626;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }}
+
+    .mic {
+      background: #ef4444;
+      color: white;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
+</head>
+
+<body>
+
+<header>⚡ Jarvis AI</header>
+
+<div id="chat"></div>
+
+<div id="inputBox">
+  <input id="input" placeholder="Ask anything..." />
+  <button class="send" onclick="send()">Send</button>
+  <button class="mic" onclick="startVoice()">🎙️</button>
+</div>
+
+<script>
+  const chat = document.getElementById("chat");
+
+  function addMessage(text, type) {
+    const div = document.createElement("div");
+    div.className = "msg " + type;
+    div.innerText = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  async function loadHistory() {
+    try {
+      const res = await fetch("http://localhost:3000/history");
+      const data = await res.json();
+
+      chat.innerHTML = "";
+
+      data.forEach(msg => {
+        addMessage(msg.content, msg.role === "user" ? "user" : "bot");
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async function send(messageInput = null) {
+    const input = document.getElementById("input");
+    const message = messageInput || input.value.trim();
+
+    if (!message) return;
+
+    addMessage(message, "user");
+    input.value = "";
+
+    const loading = document.createElement("div");
+    loading.className = "msg bot";
+    loading.innerText = "Thinking...";
+    chat.appendChild(loading);
+
+    try {
+      const res = await fetch("http://localhost:3000/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message })
+      });
+
+      const data = await res.json();
+
+      loading.remove();
+      addMessage(data.reply, "bot");
+
+      speak(data.reply);
+
+    } catch (err) {
+      loading.innerText = "Error...";
+    }
+  }
+
+  function startVoice() {
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "en-US";
+
+    recognition.onresult = function(event) {
+      const text = event.results[0][0].transcript;
+      send(text);
+    };
+
+    recognition.start();
+  }
+
+  function speak(text) {
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.lang = "en-US";
+    window.speechSynthesis.speak(speech);
+  }
+
+  window.onload = loadHistory;
+</script>
+
+</body>
+</html>
