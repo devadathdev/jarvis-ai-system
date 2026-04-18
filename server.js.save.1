@@ -1,0 +1,60 @@
+require("dotenv").config();
+const express = require("express");
+const axios = require("axios");
+
+const app = express();
+app.use(express.json());
+
+app.post("/ask", async (req, res) => {
+  const userInput = req.body.message
+  try {
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "user", content: userInput }
+        ]
+      },
+      {
+        headers: {
+          "Authorization": `Bearer ${process.env.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
+}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    const reply = response.data.choices[0].message.content;
+
+    res.json({ reply });
+
+  } catch (error) {
+    console.error(error.response?.data || error.message);
+    res.status(500).json({ error: "AI request failed" });
+  }
+});
+
+app.listen(3000, () => {
+  console.log("Server running with AI");
+});const express = require("express");
+const app = express();
+
+app.get("/", (req, res) => {
+  res.send("Jarvis backend running");
+});
+
+app.listen(3000, () => {
+  console.log("Server started on port 3000");
+});
+app.use(express.json());
+app.post("/ask", (req, res) => {
+  const userInput = req.body.message;
+
+  console.log("User:", userInput);
+
+  // Temporary fake AI response
+  res.json({
+    reply: "You said: " + userInput
+  });
+});
