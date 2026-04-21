@@ -24,7 +24,7 @@ It accepts user input and generates intelligent responses via an AI model.
 
 - Node.js
 - Express.js
-- OpenAI API
+- OPENROUTER API
 - CORS
 
 ---
